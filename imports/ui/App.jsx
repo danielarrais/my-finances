@@ -24,10 +24,11 @@ export const App = () => {
         <Fragment>
             <header>
                 <h1>Organizador Financeiro</h1>
+
                 <button onClick={() => Meteor.logout()}>Sair</button>
             </header>
-            {/* Aqui entraremos com o restante da interface do app */}
-            <p>Bem-vindo, usuário logado!</p>
+
+            <p>Bem-vindo, {user.emails?.[0]?.address}!</p>
         </Fragment>
     )
 };
