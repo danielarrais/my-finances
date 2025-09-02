@@ -12,7 +12,7 @@
   "aliases": {
     "components": "/imports/ui/components",
     "ui": "/imports/ui/components/ui",
-    "utils": "/imports/ui/lib/utils",
+    "utils": "@/imports/ui/lib/utils",
     "lib": "/imports/ui/lib",
     "hooks": "/imports/ui/hooks"
   },
