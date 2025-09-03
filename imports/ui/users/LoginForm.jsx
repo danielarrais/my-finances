@@ -1,10 +1,10 @@
 import React from 'react';
 import {useState} from "react";
 import {Meteor} from "meteor/meteor";
-import {Checkbox} from "/imports/ui/components/ui/checkbox";
-import {Input} from "/imports/ui/components/ui/input";
-import {Label} from "/imports/ui/components/ui/label";
-import {Button} from "/imports/ui/components/ui/button";
+import {Checkbox} from "/imports/ui/components/checkbox";
+import {Input} from "/imports/ui/components/input";
+import {Label} from "/imports/ui/components/label";
+import {Button} from "/imports/ui/components/button";
 import {GithubIcon, Link, TwitterIcon} from "lucide-react";
 
 export const LoginForm = () => {
@@ -26,7 +26,7 @@ export const LoginForm = () => {
         <div className="flex min-h-[760px] w-full">
             <div className="flex w-full flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none xl:px-24">
                 <div className="mx-auto w-full max-w-sm lg:w-96">
-                    <h2 className="mt-6 text-center text-3xl font-bold">Sign in to your account</h2>
+                    <h2 className="mt-6 text-center text-3xl font-bold">Login</h2>
                     <div className="mt-8 space-y-6">
                         <form onSubmit={submit} className="space-y-6">
                             <div>

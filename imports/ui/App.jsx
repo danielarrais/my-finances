@@ -1,8 +1,9 @@
 import React, {Fragment} from 'react';
 import {useTracker} from 'meteor/react-meteor-data';
 import {Meteor} from "meteor/meteor";
-import {LoginForm} from "./LoginForm";
+import {LoginForm} from "./users/LoginForm";
 import SidebarLayout from "./AppMenu";
+import {TransactionForm} from "/imports/ui/transaction/TransactionForm";
 
 export const App = () => {
     const user = useTracker(() => {
@@ -19,7 +20,7 @@ export const App = () => {
     return (
         <Fragment>
             <SidebarLayout>
-                <p>Bem-vindo, {user.emails?.[0]?.address}!</p>
+                <TransactionForm />
             </SidebarLayout>
 
         </Fragment>

@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Button } from "/imports/ui/components/ui/button";
-import { Separator } from "/imports/ui/components/ui/separator";
-import { ScrollArea } from "/imports/ui/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "/imports/ui/components/ui/tooltip";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "/imports/ui/components/ui/sheet";
+import { Button } from "/imports/ui/components/button";
+import { Separator } from "/imports/ui/components/separator";
+import { ScrollArea } from "/imports/ui/components/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "/imports/ui/components/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "/imports/ui/components/sheet";
 import { cn } from "/imports/ui/lib/utils";
 import {Menu, ArrowDownCircle, ArrowUpCircle, PiggyBank, ShoppingCart, LogOut} from "lucide-react";
+import {TransactionForm} from "/imports/ui/transaction/TransactionForm";
 
 // Navegação básica; troque window.location.href pelo seu roteador (FlowRouter/React Router)
 const NAV_ITEMS = [
@@ -145,6 +146,7 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
                             <div>
                                 <h1 className="mb-2 text-xl font-semibold tracking-tight">Bem-vindo 👋</h1>
                                 <p>Escolha uma opção no menu lateral.</p>
+
                             </div>
                         </div>
                     )}
