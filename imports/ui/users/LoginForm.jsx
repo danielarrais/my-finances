@@ -5,7 +5,7 @@ import {Checkbox} from "/imports/ui/components/checkbox";
 import {Input} from "/imports/ui/components/input";
 import {Label} from "/imports/ui/components/label";
 import {Button} from "/imports/ui/components/button";
-import {GithubIcon, Link, TwitterIcon} from "lucide-react";
+import {Link} from "lucide-react";
 
 export const LoginForm = () => {
     const [email, setEmail] = useState('');

@@ -1,4 +1,4 @@
-// /imports/ui/TransactionForm.jsx
+
 import React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -13,7 +13,6 @@ import {
 import { Button } from "/imports/ui/components/button";
 import { Meteor } from "meteor/meteor";
 
-// ⚠️ Garanta que o backend aceita estes valores (uppercase). Se no servidor estiver "income/expense", troque aqui também.
 const TransactionType = Object.freeze({
     INCOME: "INCOME",
     EXPENSE: "EXPENSE",
@@ -49,7 +48,7 @@ export const TransactionForm = () => {
             "transactions.insert",
             {
                 description: values.description.trim(),
-                type: values.type, // mantenha consistente com o servidor
+                type: values.type,
                 amount: amountNumber,
                 date: new Date(),
             },
@@ -58,7 +57,7 @@ export const TransactionForm = () => {
                     alert(error.reason || error.message);
                     return;
                 }
-                form.reset(); // volta aos defaultValues
+                form.reset();
             }
         );
     };

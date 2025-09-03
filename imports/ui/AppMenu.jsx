@@ -6,9 +6,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "/impor
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "/imports/ui/components/sheet";
 import { cn } from "/imports/ui/lib/utils";
 import {Menu, ArrowDownCircle, ArrowUpCircle, PiggyBank, ShoppingCart, LogOut} from "lucide-react";
-import {TransactionForm} from "/imports/ui/transaction/TransactionForm";
+import {NavLink, Outlet, useLocation} from "react-router-dom";
 
-// Navegação básica; troque window.location.href pelo seu roteador (FlowRouter/React Router)
 const NAV_ITEMS = [
     { label: "Entradas", icon: ArrowDownCircle, href: "/entradas" },
     { label: "Saídas", icon: ArrowUpCircle, href: "/saidas" },
@@ -16,18 +15,22 @@ const NAV_ITEMS = [
     { label: "Listas de compra", icon: ShoppingCart, href: "/listas" },
 ];
 
-function NavItem({ label, href, Icon, collapsed, active, onClick }) {
+function NavItem({ label, href, Icon, collapsed }) {
     const content = (
-        <button
-            className={cn(
-                "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition cursor-pointer",
-                active ? "bg-primary/10 font-medium text-primary" : "hover:bg-muted/80 text-muted-foreground"
-            )}
-            onClick={() => onClick && onClick(href)}
+        <NavLink
+            to={href}
+            onClick={() => onNavigate?.(href)}
+            className={({ isActive }) =>
+                cn(
+                    "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition cursor-pointer",
+                    isActive ? "bg-primary/10 font-medium text-primary" : "hover:bg-muted/80 text-muted-foreground"
+                )
+            }
+            end
         >
             <Icon className="h-5 w-5 shrink-0" />
             {!collapsed && <span className="truncate">{label}</span>}
-        </button>
+        </NavLink>
     );
 
     if (collapsed) {
@@ -61,14 +64,14 @@ function LogoutItem({ collapsed }) {
 export default function SidebarLayout({ activePath = "/", defaultExpanded = true, onNavigate, children }) {
     const [collapsed, setCollapsed] = useState(!defaultExpanded);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const location = useLocation();
 
-    const handleNavigate = (href) => {
-        if (onNavigate) onNavigate(href);
-        setMobileOpen(false);
-        if (typeof window !== "undefined") {
-            window.location.href = href; // troque pelo seu roteador
-        }
-    };
+    const handleNavigate = () => setMobileOpen(false);
+
+    const title = useMemo(
+        () => (NAV_ITEMS.find((i) => i.href === location.pathname)?.label ?? "Dashboard"),
+        [location.pathname]
+    );
 
     const desktopItems = useMemo(
         () => (
@@ -81,8 +84,6 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
                         href={it.href}
                         Icon={it.icon}
                         collapsed={collapsed}
-                        active={activePath === it.href}
-                        onClick={handleNavigate}
                     />
                 ))}
                 <Separator className="my-2" />
@@ -129,8 +130,6 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
                                             href={it.href}
                                             Icon={it.icon}
                                             collapsed={false}
-                                            active={activePath === it.href}
-                                            onClick={handleNavigate}
                                         />
                                     ))}
                                 </nav>
@@ -140,16 +139,14 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
                     <span className="text-sm font-semibold">{(NAV_ITEMS.find((i) => i.href === activePath) || {}).label || "Dashboard"}</span>
                 </div>
 
+                <aside className={cn("hidden border-r bg-card/30 backdrop-blur supports-[backdrop-filter]:bg-card/50 md:block")}>
+                    <div className="flex h-16 items-center gap-2 px-3">
+                        <span className="text-base font-semibold tracking-tight">{title}</span>
+                    </div>
+                    <Separator />
+                </aside>
                 <main className="min-h-[calc(100vh-3.5rem)] p-4 md:min-h-[calc(100vh-4rem)] md:p-6">
-                    {children || (
-                        <div className="grid place-items-center rounded-2xl border p-10 text-center text-muted-foreground">
-                            <div>
-                                <h1 className="mb-2 text-xl font-semibold tracking-tight">Bem-vindo 👋</h1>
-                                <p>Escolha uma opção no menu lateral.</p>
-
-                            </div>
-                        </div>
-                    )}
+                    {children ?? <Outlet />}
                 </main>
             </div>
         </div>
