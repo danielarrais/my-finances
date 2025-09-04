@@ -9,8 +9,7 @@ import {Menu, ArrowDownCircle, ArrowUpCircle, PiggyBank, ShoppingCart, LogOut} f
 import {NavLink, Outlet, useLocation} from "react-router-dom";
 
 const NAV_ITEMS = [
-    { label: "Entradas", icon: ArrowDownCircle, href: "/entradas" },
-    { label: "Saídas", icon: ArrowUpCircle, href: "/saidas" },
+    { label: "Transações", icon: ArrowDownCircle, href: "/transacoes" },
     { label: "Economias", icon: PiggyBank, href: "/economias" },
     { label: "Listas de compra", icon: ShoppingCart, href: "/listas" },
 ];

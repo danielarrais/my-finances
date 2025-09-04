@@ -8,7 +8,6 @@ import {TransactionPage} from "/imports/ui/transaction/TransactionPage";
 
 export const App = () => {
     const user = useTracker(() => {
-        console.log("Chamou o use tracker 'Meteor.user()'")
         return Meteor.user();
     });
 
@@ -19,18 +18,11 @@ export const App = () => {
     }
 
     return (
-        // <Fragment>
-        //     <SidebarLayout>
-        //         <TransactionForm />
-        //     </SidebarLayout>
-        //
-        // </Fragment>
         <BrowserRouter>
             <Routes>
                 <Route element={<SidebarLayout />}>
-                    <Route index element={<Navigate to="/entradas" replace />} />
-                    <Route path="/entradas" element={<TransactionPage />} />
-                    <Route path="/saidas" element={<Fragment />} />
+                    <Route index element={<Navigate to="/transacoes" replace />} />
+                    <Route path="/transacoes" element={<TransactionPage />} />
                     <Route path="/economias" element={<Fragment />} />
                     <Route path="/listas" element={<Fragment />} />
                     <Route path="*" element={<Fragment />} />

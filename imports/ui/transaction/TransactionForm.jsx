@@ -1,19 +1,18 @@
-
-import React from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React, {useEffect} from "react";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 import {
     Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "/imports/ui/components/form";
-import { Input } from "/imports/ui/components/input";
+import {Input} from "/imports/ui/components/input";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "/imports/ui/components/select";
-import { Button } from "/imports/ui/components/button";
-import { Meteor } from "meteor/meteor";
+import {Button} from "/imports/ui/components/button";
+import {Meteor} from "meteor/meteor";
 
-const TransactionType = Object.freeze({
+const TransactionTypes = Object.freeze({
     INCOME: "INCOME",
     EXPENSE: "EXPENSE",
 });
@@ -21,16 +20,16 @@ const TransactionType = Object.freeze({
 const transactionSchema = z.object({
     description: z.string().min(2, "Descrição muito curta"),
     amount: z.string().refine((v) => !Number.isNaN(parseFloat(v)), "Valor deve ser numérico"),
-    type: z.enum([TransactionType.INCOME, TransactionType.EXPENSE]),
+    type: z.enum(Object.values(TransactionTypes), "Tipo de transação invalido"),
 });
 
-export const TransactionForm = () => {
+export const TransactionForm = ({transaction = null, onCancel}) => {
     const form = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             description: "",
             amount: "",
-            type: TransactionType.EXPENSE,
+            type: TransactionTypes.EXPENSE,
         },
         mode: "onChange",
     });
@@ -62,8 +61,20 @@ export const TransactionForm = () => {
         );
     };
 
+    useEffect(() => {
+        if (transaction) {
+            form.reset({
+                description: transaction.description,
+                amount: transaction.amount,
+                type: transaction.type,
+            })
+        } else {
+            form.reset();
+        }
+    }, [transaction]);
+
     return (
-        <div className=" mx-auto">
+        <div className="mb-4 mx-auto">
             <div className="rounded-2xl border bg-card text-card-foreground shadow-sm">
                 <div className="p-6">
                     <h3 className="text-xl font-semibold tracking-tight">Nova Transação</h3>
@@ -76,7 +87,7 @@ export const TransactionForm = () => {
                             <FormField
                                 control={form.control}
                                 name="description"
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <FormItem>
                                         <FormLabel>Descrição</FormLabel>
                                         <FormControl>
@@ -86,7 +97,7 @@ export const TransactionForm = () => {
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage/>
                                     </FormItem>
                                 )}
                             />
@@ -95,7 +106,7 @@ export const TransactionForm = () => {
                                 <FormField
                                     control={form.control}
                                     name="amount"
-                                    render={({ field }) => (
+                                    render={({field}) => (
                                         <FormItem>
                                             <FormLabel>Valor</FormLabel>
                                             <FormControl>
@@ -105,7 +116,7 @@ export const TransactionForm = () => {
                                                     {...field}
                                                 />
                                             </FormControl>
-                                            <FormMessage />
+                                            <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
@@ -113,21 +124,25 @@ export const TransactionForm = () => {
                                 <FormField
                                     control={form.control}
                                     name="type"
-                                    render={({ field }) => (
+                                    render={({field}) => (
                                         <FormItem>
                                             <FormLabel>Tipo</FormLabel>
                                             <FormControl>
-                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                <Select key={field.value}
+                                                        value={field.value}
+                                                        onValueChange={field.onChange}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione o tipo" />
+                                                        <SelectValue placeholder="Selecione o tipo"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value={TransactionType.EXPENSE}>Despesa (-)</SelectItem>
-                                                        <SelectItem value={TransactionType.INCOME}>Entrada (+)</SelectItem>
+                                                        <SelectItem value={TransactionTypes.EXPENSE}>Despesa
+                                                            (-)</SelectItem>
+                                                        <SelectItem value={TransactionTypes.INCOME}>Entrada
+                                                            (+)</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </FormControl>
-                                            <FormMessage />
+                                            <FormMessage/>
                                         </FormItem>
                                     )}
                                 />
@@ -137,7 +152,9 @@ export const TransactionForm = () => {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => form.reset()}
+                                    onClick={() => {
+                                        onCancel();
+                                    }}
                                     className="cursor-pointer"
                                 >
                                     Limpar
