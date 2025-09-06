@@ -11,6 +11,10 @@ import {
 } from "/imports/ui/components/select";
 import {Button} from "/imports/ui/components/button";
 import {Meteor} from "meteor/meteor";
+import {Calendar} from "/imports/ui/components/calendar";
+import {Popover, PopoverContent, PopoverTrigger} from "/imports/ui/components/popover";
+import {ChevronDownIcon} from "lucide-react";
+import {format} from "date-fns";
 
 const TransactionTypes = Object.freeze({
     INCOME: "INCOME",
@@ -24,15 +28,18 @@ const transactionSchema = z.object({
         "Use apenas números (e opcional , ou .)"
     ).transform(v => parseFloat(v.replace(",", "."))),
     type: z.enum(Object.values(TransactionTypes), "Tipo de transação invalido"),
+    date: z.date()
 });
 
 export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
+    const [open, setOpen] = React.useState(false)
     const form = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             description: "",
             amount: "",
             type: TransactionTypes.EXPENSE,
+            date: new Date()
         },
         mode: "onChange",
         reValidateMode: "onChange",
@@ -54,7 +61,7 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
                     description: values.description.trim(),
                     type: values.type,
                     amount: amountNumber,
-                    date: new Date(),
+                    date: new Date(values.date),
                 },
                 (error) => {
                     if (error) {
@@ -74,7 +81,7 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
                 description: values.description.trim(),
                 type: values.type,
                 amount: amountNumber,
-                date: new Date(), // TODO: Create a new input for that
+                date: new Date(values.date)
             },
             (error) => {
                 if (error) {
@@ -114,23 +121,59 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
 
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(saveTransaction)} className="mt-6 space-y-6">
-                            <FormField
-                                control={form.control}
-                                name="description"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Descrição</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Mercado, Uber, etc."
-                                                autoComplete="off"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="description"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Descrição</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="Mercado, Uber, etc."
+                                                    autoComplete="off"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="date"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Data</FormLabel>
+                                            <FormControl>
+                                                <Popover open={open} onOpenChange={setOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            id="date"
+                                                            className="w-48 justify-between font-normal"
+                                                        >
+                                                            {field.value ? format(field.value, "dd/MM/yyyy") : "Select date"}
+                                                            <ChevronDownIcon/>
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto overflow-hidden p-0"
+                                                                    align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            className="rounded-lg border"
+                                                            {...field}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <FormField
