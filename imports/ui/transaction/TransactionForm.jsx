@@ -19,11 +19,14 @@ const TransactionTypes = Object.freeze({
 
 const transactionSchema = z.object({
     description: z.string().min(2, "Descrição muito curta"),
-    amount: z.string().refine((v) => !Number.isNaN(parseFloat(v)), "Valor deve ser numérico"),
+    amount: z.string().trim().min(1, "Informe um valor").refine(
+        v => /^-?\d+(?:[.,]\d+)?$/.test(v),
+        "Use apenas números (e opcional , ou .)"
+    ).transform(v => parseFloat(v.replace(",", "."))),
     type: z.enum(Object.values(TransactionTypes), "Tipo de transação invalido"),
 });
 
-export const TransactionForm = ({transaction = null, onCancel}) => {
+export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
     const form = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
@@ -32,6 +35,7 @@ export const TransactionForm = ({transaction = null, onCancel}) => {
             type: TransactionTypes.EXPENSE,
         },
         mode: "onChange",
+        reValidateMode: "onChange",
     });
 
     const saveTransaction = (values) => {
@@ -43,20 +47,41 @@ export const TransactionForm = ({transaction = null, onCancel}) => {
 
         const amountNumber = parseFloat(values.amount);
 
+        if (!transaction) {
+            Meteor.call(
+                "transactions.insert",
+                {
+                    description: values.description.trim(),
+                    type: values.type,
+                    amount: amountNumber,
+                    date: new Date(),
+                },
+                (error) => {
+                    if (error) {
+                        alert(error.reason || error.message);
+                        return;
+                    }
+                    reset();
+                }
+            );
+            return;
+        }
+
         Meteor.call(
-            "transactions.insert",
+            "transactions.update",
             {
+                id: transaction._id,
                 description: values.description.trim(),
                 type: values.type,
                 amount: amountNumber,
-                date: new Date(),
+                date: new Date(), // TODO: Create a new input for that
             },
             (error) => {
                 if (error) {
                     alert(error.reason || error.message);
                     return;
                 }
-                form.reset();
+                reset();
             }
         );
     };
@@ -65,13 +90,18 @@ export const TransactionForm = ({transaction = null, onCancel}) => {
         if (transaction) {
             form.reset({
                 description: transaction.description,
-                amount: transaction.amount,
+                amount: String(transaction.amount),
                 type: transaction.type,
-            })
+            });
         } else {
             form.reset();
         }
     }, [transaction]);
+
+    const reset = () => {
+        onReset();
+        form.reset();
+    }
 
     return (
         <div className="mb-4 mx-auto">
@@ -106,6 +136,7 @@ export const TransactionForm = ({transaction = null, onCancel}) => {
                                 <FormField
                                     control={form.control}
                                     name="amount"
+                                    pattern="^-?\d*([.,]\d+)?$"
                                     render={({field}) => (
                                         <FormItem>
                                             <FormLabel>Valor</FormLabel>
@@ -152,9 +183,15 @@ export const TransactionForm = ({transaction = null, onCancel}) => {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => {
-                                        onCancel();
-                                    }}
+                                    onClick={onCancel}
+                                    className="cursor-pointer"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={reset}
                                     className="cursor-pointer"
                                 >
                                     Limpar
@@ -164,7 +201,7 @@ export const TransactionForm = ({transaction = null, onCancel}) => {
                                     disabled={!form.formState.isValid}
                                     className="cursor-pointer"
                                 >
-                                    Inserir
+                                    {transaction ? "Salvar" : "Inserir"}
                                 </Button>
                             </div>
                         </form>

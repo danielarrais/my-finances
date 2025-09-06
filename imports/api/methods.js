@@ -19,5 +19,47 @@ Meteor.methods({
             userId: this.userId,
             createdAt: new Date(),
         })
-    }
+    },
+    async 'transactions.update'({id, description, amount, type, date}) {
+        check(id, String);
+        check(description, String);
+        check(amount, Number);
+        check(type, Match.OneOf("INCOME", "EXPENSE"));
+        check(date, Date);
+
+        if (!this.userId) throw new Meteor.Error('not-authorized');
+
+        const transaction = await TransactionsCollection.findOneAsync({_id: id, userId: this.userId})
+
+        if (!transaction) throw new Meteor.Error("not-found", "Transação não encontrada.");
+
+        return await TransactionsCollection.updateAsync(
+            {_id: id, userId: this.userId},
+            {
+                $set: {
+                    description,
+                    amount,
+                    type,
+                    date,
+                    updatedAt: new Date()
+                }
+            });
+    },
+    async 'transactions.remove'(id) {
+        check(id, String);
+
+        if (!this.userId) throw new Meteor.Error('not-authorized');
+
+        const transaction = await TransactionsCollection.findOneAsync({_id: id, userId: this.userId})
+
+        if (!transaction) throw new Meteor.Error("not-found", "Transação não encontrada.");
+
+        const result = await TransactionsCollection.removeAsync({_id: id, userId: this.userId});
+
+        if (result === 0) {
+            throw  new Meteor.Error("delete-failed", "Nada foi removido")
+        }
+
+        return result;
+    },
 })
