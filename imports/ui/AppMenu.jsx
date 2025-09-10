@@ -3,22 +3,18 @@ import { Button } from "/imports/ui/components/button";
 import { Separator } from "/imports/ui/components/separator";
 import { ScrollArea } from "/imports/ui/components/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "/imports/ui/components/tooltip";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "/imports/ui/components/sheet";
+import {Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger} from "/imports/ui/components/sheet";
 import { cn } from "/imports/ui/lib/utils";
-import {Menu, ArrowDownCircle, ArrowUpCircle, PiggyBank, ShoppingCart, LogOut} from "lucide-react";
+import {Menu, LogOut} from "lucide-react";
 import {NavLink, Outlet, useLocation} from "react-router-dom";
+import {MENUS} from "/imports/ui/constant/menus";
 
-const NAV_ITEMS = [
-    { label: "Transações", icon: ArrowDownCircle, href: "/transacoes" },
-    { label: "Economias", icon: PiggyBank, href: "/economias" },
-    { label: "Listas de compra", icon: ShoppingCart, href: "/listas" },
-];
+
 
 function NavItem({ label, href, Icon, collapsed }) {
     const content = (
         <NavLink
             to={href}
-            onClick={() => onNavigate?.(href)}
             className={({ isActive }) =>
                 cn(
                     "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition cursor-pointer",
@@ -51,7 +47,7 @@ function LogoutItem({ collapsed }) {
 
     return (
         <button
-            className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-3 py-2 text-sm text-muted-foreground hover:bg-muted/80"
+            className="flex w-full cursor-pointer items-center gap-3 rounded-2xl pt-4 text-sm text-muted-foreground hover:bg-muted/80"
             onClick={handleLogout}
         >
             <LogOut className="h-5 w-5 shrink-0" />
@@ -60,22 +56,21 @@ function LogoutItem({ collapsed }) {
     );
 }
 
-export default function SidebarLayout({ activePath = "/", defaultExpanded = true, onNavigate, children }) {
+export default function SidebarLayout({ activePath = "/", defaultExpanded = true, children }) {
     const [collapsed, setCollapsed] = useState(!defaultExpanded);
     const [mobileOpen, setMobileOpen] = useState(false);
     const location = useLocation();
 
-    const handleNavigate = () => setMobileOpen(false);
-
+    const appTitle = "Organizador Financeiro"
     const title = useMemo(
-        () => (NAV_ITEMS.find((i) => i.href === location.pathname)?.label ?? "Dashboard"),
+        () => (MENUS.find((i) => i.href === location.pathname)?.label ?? "Dashboard"),
         [location.pathname]
     );
 
-    const desktopItems = useMemo(
+    const menus = useMemo(
         () => (
             <>
-                {NAV_ITEMS.map((it) => (
+                {MENUS.map((it) => (
                     <NavItem
                         className={"cursor-pointer"}
                         key={it.href}
@@ -85,8 +80,6 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
                         collapsed={collapsed}
                     />
                 ))}
-                <Separator className="my-2" />
-                <LogoutItem collapsed={collapsed} />
             </>
         ),
         [collapsed, activePath]
@@ -94,16 +87,18 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
 
     return (
         <div className="flex min-h-screen w-full bg-background">
-            <aside className={cn("hidden border-r bg-card/30 backdrop-blur supports-[backdrop-filter]:bg-card/50 md:block", collapsed ? "w-[76px]" : "w-64")}>
+            <aside className={cn("hidden border-r bg-card/30 backdrop-blur supports-[backdrop-filter]:bg-card/50 md:block", collapsed ? "w-[64px]" : "w-64")}>
                 <div className="flex h-16 items-center gap-2 px-3">
                     <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => setCollapsed((c) => !c)} aria-label={collapsed ? "Expandir menu" : "Recolher menu"}>
                         <Menu className="h-5 w-5" />
                     </Button>
-                    {!collapsed && <span className="text-base font-semibold tracking-tight">Organizador Financeiro</span>}
+                    {!collapsed && <span className="text-base font-semibold tracking-tight">{appTitle}</span>}
                 </div>
                 <Separator />
                 <ScrollArea className="h-[calc(100vh-4rem)] px-2 py-3">
-                    <nav className="flex flex-col gap-1">{desktopItems}</nav>
+                    <nav className="flex flex-col gap-1">
+                        {menus}
+                    </nav>
                 </ScrollArea>
             </aside>
 
@@ -115,27 +110,20 @@ export default function SidebarLayout({ activePath = "/", defaultExpanded = true
                                 <Menu className="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="w-72 p-0">
+                        <SheetContent side="left" className="w-72 pt-4">
                             <SheetHeader className="px-4 py-3">
-                                <SheetTitle>Meu Financeiro</SheetTitle>
+                                <SheetTitle>{appTitle}</SheetTitle>
                             </SheetHeader>
-                            <Separator />
+                            <Separator className="p-0 m-0"/>
                             <div className="p-2">
-                                <nav className="flex flex-col gap-1">
-                                    {NAV_ITEMS.map((it) => (
-                                        <NavItem
-                                            key={it.href}
-                                            label={it.label}
-                                            href={it.href}
-                                            Icon={it.icon}
-                                            collapsed={false}
-                                        />
-                                    ))}
-                                </nav>
+                                <nav className="flex flex-col gap-1">{menus}</nav>
                             </div>
+                            <SheetFooter>
+                                <LogoutItem collapsed={collapsed} />
+                            </SheetFooter>
                         </SheetContent>
                     </Sheet>
-                    <span className="text-sm font-semibold">{(NAV_ITEMS.find((i) => i.href === activePath) || {}).label || "Dashboard"}</span>
+                    <span className="text-sm font-semibold">{title} </span>
                 </div>
 
                 <aside className={cn("hidden border-r bg-card/30 backdrop-blur supports-[backdrop-filter]:bg-card/50 md:block")}>

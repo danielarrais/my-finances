@@ -1,6 +1,7 @@
 import {Meteor} from "meteor/meteor";
 import {check, Match} from "meteor/check";
 import {TransactionsCollection} from "/imports/api/TransactionsCollection";
+import {FixedTransactionsCollection} from "/imports/api/FixedTransactionsCollection";
 
 Meteor.methods({
     async 'transactions.insert'({description, amount, type, date}) {
@@ -61,5 +62,47 @@ Meteor.methods({
         }
 
         return result;
+    },
+    async 'fixed_transactions.insert'({description, amount, type, monthDay}) {
+        check(description, String);
+        check(amount, Number);
+        check(type, Match.OneOf("INCOME", "EXPENSE"));
+        check(monthDay, Number);
+
+        if (!this.userId) throw new Meteor.Error('not-authorized');
+
+        return await FixedTransactionsCollection.insertAsync({
+            description,
+            amount,
+            type,
+            monthDay,
+            userId: this.userId,
+            createdAt: new Date(),
+        })
+    },
+    async 'fixed_transactions.update'({id, description, amount, type, monthDay}) {
+        check(id, String);
+        check(description, String);
+        check(amount, Number);
+        check(type, Match.OneOf("INCOME", "EXPENSE"));
+        check(monthDay, Number);
+
+        if (!this.userId) throw new Meteor.Error('not-authorized');
+
+        const transaction = await FixedTransactionsCollection.findOneAsync({_id: id, userId: this.userId})
+
+        if (!transaction) throw new Meteor.Error("not-found", "Transação não encontrada.");
+
+        return await FixedTransactionsCollection.updateAsync(
+            {_id: id, userId: this.userId},
+            {
+                $set: {
+                    description,
+                    amount,
+                    type,
+                    monthDay,
+                    updatedAt: new Date()
+                }
+            });
     },
 })

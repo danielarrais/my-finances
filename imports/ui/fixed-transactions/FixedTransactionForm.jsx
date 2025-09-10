@@ -11,10 +11,6 @@ import {
 } from "/imports/ui/components/select";
 import {Button} from "/imports/ui/components/button";
 import {Meteor} from "meteor/meteor";
-import {Calendar} from "/imports/ui/components/calendar";
-import {Popover, PopoverContent, PopoverTrigger} from "/imports/ui/components/popover";
-import {ChevronDownIcon} from "lucide-react";
-import {format} from "date-fns";
 
 const TransactionTypes = Object.freeze({
     INCOME: "INCOME",
@@ -23,23 +19,22 @@ const TransactionTypes = Object.freeze({
 
 const transactionSchema = z.object({
     description: z.string().min(2, "Descrição muito curta"),
-    amount: z.string().trim().min(1, "Informe um valor").refine(
-        v => /^-?\d+(?:[.,]\d+)?$/.test(v),
-        "Use apenas números (e opcional , ou .)"
-    ).transform(v => parseFloat(v.replace(",", "."))),
+    amount: z.string().trim()
+        .min(1, "Informe um valor")
+        .refine(v => /^-?\d+(?:[.,]\d+)?$/.test(v), "Use apenas números (e opcional , ou .)")
+        .transform(v => parseFloat(v.replace(",", "."))),
     type: z.enum(Object.values(TransactionTypes), "Tipo de transação invalido"),
-    date: z.date()
+    monthDay: z.number()
 });
 
-export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
-    const [open, setOpen] = React.useState(false)
+export const FixedTransactionForm = ({transaction = null, onCancel, onReset}) => {
     const form = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             description: "",
             amount: "",
             type: TransactionTypes.EXPENSE,
-            date: new Date()
+            monthDay: 1
         },
         mode: "onChange",
         reValidateMode: "onChange",
@@ -56,12 +51,12 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
 
         if (!transaction) {
             Meteor.call(
-                "transactions.insert",
+                "fixed_transactions.insert",
                 {
                     description: values.description.trim(),
                     type: values.type,
                     amount: amountNumber,
-                    date: new Date(values.date),
+                    monthDay: values.monthDay
                 },
                 (error) => {
                     if (error) {
@@ -75,13 +70,13 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
         }
 
         Meteor.call(
-            "transactions.update",
+            "fixed_transactions.update",
             {
                 id: transaction._id,
                 description: values.description.trim(),
                 type: values.type,
                 amount: amountNumber,
-                date: new Date(values.date)
+                monthDay: values.monthDay
             },
             (error) => {
                 if (error) {
@@ -99,7 +94,6 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
                 description: transaction.description,
                 amount: String(transaction.amount),
                 type: transaction.type,
-                date: transaction.date,
             });
         } else {
             form.reset();
@@ -115,9 +109,9 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
         <div className="mb-4 mx-auto">
             <div className="rounded-2xl border bg-card text-card-foreground shadow-sm">
                 <div className="p-6">
-                    <h3 className="text-xl font-semibold tracking-tight">Nova Transação</h3>
+                    <h3 className="text-xl font-semibold tracking-tight">Nova Transação fixa</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Preencha os campos abaixo para registrar uma entrada ou despesa.
+                        Preencha os campos abaixo para registrar uma entrada ou despesa que se repete todos os meses.
                     </p>
 
                     <Form {...form}>
@@ -142,43 +136,6 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="date"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Data</FormLabel>
-                                            <FormControl>
-                                                <Popover open={open} onOpenChange={setOpen}>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            id="date"
-                                                            className="w-48 justify-between font-normal"
-                                                        >
-                                                            {field.value ? format(field.value, "dd/MM/yyyy") : "Select date"}
-                                                            <ChevronDownIcon/>
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto overflow-hidden p-0"
-                                                                    align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            className="rounded-lg border"
-                                                            {...field}
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
                                     name="amount"
                                     pattern="^-?\d*([.,]\d+)?$"
                                     render={({field}) => (
@@ -190,6 +147,32 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
                                                     placeholder="0.00"
                                                     {...field}
                                                 />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="monthDay"
+                                    pattern="^-?\d*([.,]\d+)?$"
+                                    render={({field}) => (
+                                        <FormItem>
+                                            <FormLabel>Dia no mês</FormLabel>
+                                            <FormControl>
+                                                <Select key={field.value}
+                                                        value={field.value}
+                                                        onValueChange={field.onChange}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Selecione o dia"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {[...Array(31).keys()].map(i => {
+                                                            return <SelectItem key={i + 1} value={i + 1}>{i + 1}</SelectItem>
+                                                        })}
+                                                    </SelectContent>
+                                                </Select>
                                             </FormControl>
                                             <FormMessage/>
                                         </FormItem>
@@ -210,10 +193,12 @@ export const TransactionForm = ({transaction = null, onCancel, onReset}) => {
                                                         <SelectValue placeholder="Selecione o tipo"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value={TransactionTypes.EXPENSE}>Despesa
-                                                            (-)</SelectItem>
-                                                        <SelectItem value={TransactionTypes.INCOME}>Entrada
-                                                            (+)</SelectItem>
+                                                        <SelectItem value={TransactionTypes.EXPENSE}>
+                                                            Despesa (-)
+                                                        </SelectItem>
+                                                        <SelectItem value={TransactionTypes.INCOME}>
+                                                            Entrada (+)
+                                                        </SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </FormControl>
